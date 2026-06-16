@@ -32,7 +32,7 @@ def gameover(screen: pg.Surface) -> None:#ゲームオーバー画面
     bg_black = pg.Surface((WIDTH, HEIGHT))
     pg.draw.rect(bg_black, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
     bg_black.set_alpha(128)
-    
+    font_size = 80
     # "Game Over" の文字列を作成
     font = pg.font.Font(None, 80)
     txt = font.render("Game Over", True, (255, 255, 255))
@@ -51,7 +51,7 @@ def gameover(screen: pg.Surface) -> None:#ゲームオーバー画面
     screen.blit(txt, txt_rct)
     screen.blit(kk_img, kk_rct1)
     screen.blit(kk_img, kk_rct2)
-    
+
     pg.display.update()
     time.sleep(5)
 
@@ -129,8 +129,19 @@ def main():
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
     vx, vy = +5, +5
 
+    # try:
+    unko_img = pg.image.load("fig/unko.png")
+    unko_img = pg.transform.scale(unko_img, (50, 50)) # 50x50サイズに調整
+    # except Exception as e:
+    #     print(f"画像読み込みエラー: {e}")
+    #     unko_img = pg.Surface((40, 40))
+    #     unko_img.fill((139, 69, 19)) # 画像がない時の身代わり(茶色の四角)
+
+    unko_list = []
     clock = pg.time.Clock()
     tmr = 0
+    sum_mv = [0, 0]  # ループ開始前に初期化
+
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
@@ -143,7 +154,7 @@ def main():
 
         screen.blit(bg_img, [0, 0]) 
 
-        # こうかとんの移動処理
+        # こうかとんの移動キー入力受付
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
         if key_lst[pg.K_UP]: sum_mv[1] -= 5
@@ -160,6 +171,21 @@ def main():
             #kk_img = kk_imgs[tuple(sum_mv)]
         kk_img = kk_imgs[(sum_mv[0], sum_mv[1])]
         screen.blit(kk_img, kk_rct)
+
+        # ▽▽▽ ここから追加 ▽▽▽
+        # 10秒に1回（50fpsなので500フレームごと）落とす処理
+        if tmr > 0 and tmr % 500 == 0:
+            new_unko_rct = unko_img.get_rect()
+            new_unko_rct.center = kk_rct.center  # こうかとんの現在地
+            unko_list.append(new_unko_rct)
+
+        # 画面内の物体を下に移動させて描画（画面外に出たら削除）
+        for u_rct in unko_list[:]:
+            u_rct.move_ip(0, 4)  # 下方向に毎フレーム4ピクセルずつ落下
+            if u_rct.top > HEIGHT:
+                unko_list.remove(u_rct)
+            else:
+                screen.blit(unko_img, u_rct)
 
         # 追従型爆弾のベクトル計算
         vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
@@ -191,6 +217,7 @@ def main():
         pg.display.update()
         tmr += 1
         clock.tick(50)
+
 if __name__ == "__main__":
     pg.init()
     main()
