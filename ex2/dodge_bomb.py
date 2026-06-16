@@ -70,19 +70,7 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
         bb_imgs.append(bb_img)
 
     return bb_imgs, bb_accs
-#def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
-   # """
-   # サイズの異なる爆弾Surfaceのリストと加速度リストを返す関数
-    #戻り値：爆弾Surfaceリスト、加速度リストのタプル
-   # """
-   # bb_imgs = []
-    #bb_accs = [a for a in range(1, 11)]
-    #for r in range(1, 11):
-        #bb_img = pg.Surface((20 * r, 20 * r))
-        #bb_img.set_colorkey((0, 0, 0))
-        #pg.draw.circle(bb_img, (255, 0, 0), (10 * r, 10 * r), 10 * r)
-        #bb_imgs.append(bb_img)
-    #return bb_imgs, bb_accs
+
 def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     """
     移動量に対応するこうかとん画像の辞書を返す関数
@@ -203,12 +191,6 @@ def main():
         pg.display.update()
         tmr += 1
         clock.tick(50)
-
-
-
-
-
-
 if __name__ == "__main__":
     pg.init()
     main()
