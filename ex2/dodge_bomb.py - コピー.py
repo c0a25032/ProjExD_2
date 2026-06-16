@@ -14,11 +14,12 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     戻り値：横方向、縦方向のはみ出し判定結果（画面内：True ／ 画面外：False）
     """
     yoko, tate = True, True
-    if obj_rct.left < 0 or WIDTH < obj_rct.right:
+    if obj_rct.left < 0 or WIDTH < obj_rct.right:#横方向
         yoko = False
     if obj_rct.top < 0 or HEIGHT < obj_rct.bottom:
         tate = False
     return yoko, tate
+
 
 
 def main():
@@ -45,7 +46,7 @@ def main():
                 return
         
         # 衝突判定
-        if kk_rct.colliderect(bd_rct):
+        if kk_rct.colliderect(bd_rct):#重なったら
             print("ゲームオーバー！")
             return
 
