@@ -29,11 +29,11 @@ def main():
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
 
-    # 爆弾の生成
+    # 爆弾の初期化
     bd_img = pg.Surface((20, 20))
     bd_img.set_colorkey((0, 0, 0))  # 黒い部分を透過させる
-    pg.draw.circle(bd_img, (255, 0, 0), (10, 10), 10)  # 赤い爆弾を描画
-    bd_rct = bd_img.get_rect()
+    pg.draw.circle(bd_img, (255, 0, 0), (10, 10), 10)  # 半径10の赤い爆弾を描画
+    bd_rct = bd_img.get_rect()#爆弾Rect
     bd_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
     vx, vy = +5, +5  # 爆弾の移動速度
 
