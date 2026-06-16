@@ -32,7 +32,6 @@ def gameover(screen: pg.Surface) -> None:#ゲームオーバー画面
     bg_black = pg.Surface((WIDTH, HEIGHT))
     pg.draw.rect(bg_black, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
     bg_black.set_alpha(128)
-    font_size = 80
     # "Game Over" の文字列を作成
     font = pg.font.Font(None, 80)
     txt = font.render("Game Over", True, (255, 255, 255))
