@@ -101,6 +101,110 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
         (0, +5): pg.transform.rotozoom(img1, -90, 1.0),   # 下
         (-5, +5): pg.transform.rotozoom(img0, 45, 1.0)    # 左下
     }
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    """
+    爆弾からこうかとんへの方向ベクトルを計算する関数
+    引数 org：爆弾Rect、dst：こうかとんRect、current_xy：現在の速度ベクトル
+    戻り値：新しい速度ベクトル（vx, vyのタプル）
+    """
+    diff_x = dst.centerx - org.centerx
+    diff_y = dst.centery - org.centery
+    dist = math.sqrt(diff_x**2 + diff_y**2)
+    
+    # 距離が300未満の場合は追従せず、現在の慣性（速度）を維持
+    if dist < 300:
+        return current_xy
+    
+    # 差ベクトルのノルムが√50になるように正規化
+    norm = math.sqrt(50)
+    if dist > 0:
+        vx = (diff_x / dist) * norm
+        vy = (diff_y / dist) * norm
+    else:
+        vx, vy = current_xy
+        
+    return vx, vy
+
+
+def main():
+    pg.display.set_caption("逃げろ！こうかとん")
+    screen = pg.display.set_mode((WIDTH, HEIGHT))
+    bg_img = pg.image.load("fig/pg_bg.jpg")
+    
+    kk_imgs = get_kk_imgs()
+    kk_img = kk_imgs[(0, 0)]
+    kk_rct = kk_img.get_rect()
+    kk_rct.center = 300, 200
+
+    bb_imgs, bb_accs = init_bb_imgs()
+    bb_rct = bb_imgs[0].get_rect()
+    bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
+    vx, vy = +5, +5
+
+    clock = pg.time.Clock()
+    tmr = 0
+    while True:
+        for event in pg.event.get():
+            if event.type == pg.QUIT: 
+                return
+        
+        # 衝突判定
+        if kk_rct.colliderect(bb_rct):
+            gameover(screen)
+            return
+
+        screen.blit(bg_img, [0, 0]) 
+
+        # こうかとんの移動処理
+        key_lst = pg.key.get_pressed()
+        sum_mv = [0, 0]
+        if key_lst[pg.K_UP]: sum_mv[1] -= 5
+        if key_lst[pg.K_DOWN]: sum_mv[1] += 5
+        if key_lst[pg.K_LEFT]: sum_mv[0] -= 5
+        if key_lst[pg.K_RIGHT]: sum_mv[0] += 5
+        
+        kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True):
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
+        
+        # 移動しているときだけ画像を変更（静止時は直前の向きを維持）
+        #if sum_mv != [0, 0]:
+            #kk_img = kk_imgs[tuple(sum_mv)]
+        kk_img = kk_imgs[(sum_mv[0], sum_mv[1])]
+        screen.blit(kk_img, kk_rct)
+
+        # 追従型爆弾のベクトル計算
+        vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
+
+        # 爆弾の拡大と加速
+        idx = min(tmr // 500, 9)
+        bb_img = bb_imgs[idx]
+        avx = vx * bb_accs[idx]
+        avy = vy * bb_accs[idx]
+        
+        # 【修正】新しいSurfaceから正しくRectを生成し、中心座標を引き継ぐ
+        bb_center = bb_rct.center
+        bb_rct = bb_img.get_rect()
+        bb_rct.center = bb_center
+        
+        bb_rct.move_ip(avx, avy)
+        
+        # 壁での反射処理（めり込み防止対策込み）
+        yoko, tate = check_bound(bb_rct)
+        if not yoko:
+            vx *= -1
+            bb_rct.move_ip(-avx, 0)  # 1フレーム分位置を戻す
+        if not tate:
+            vy *= -1
+            bb_rct.move_ip(0, -avy)  # 1フレーム分位置を戻す
+            
+        screen.blit(bb_img, bb_rct)
+
+        pg.display.update()
+        tmr += 1
+        clock.tick(50)
+
+
 
 
 
